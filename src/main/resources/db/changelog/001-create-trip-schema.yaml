@@ -1,0 +1,309 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-trip-planning-schema
+      author: copilot
+      changes:
+        - createTable:
+            tableName: trips
+            columns:
+              - column:
+                  name: id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: destination
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: start_date
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: end_date
+                  type: date
+                  constraints:
+                    nullable: false
+                    checkConstraint: end_date >= start_date
+              - column:
+                  name: notes
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: trip_travelers
+            columns:
+              - column:
+                  name: id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: trip_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: display_name
+                  type: varchar(120)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sort_order
+                  type: int
+                  constraints:
+                    nullable: false
+                    checkConstraint: sort_order >= 0
+
+        - createTable:
+            tableName: trip_preferences
+            columns:
+              - column:
+                  name: trip_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: preference
+                  type: varchar(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sort_order
+                  type: int
+                  constraints:
+                    nullable: false
+                    checkConstraint: sort_order >= 0
+
+        - createTable:
+            tableName: trip_expenses
+            columns:
+              - column:
+                  name: id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: trip_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: title
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: category
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+                    checkConstraint: category IN ('Flights', 'Stay', 'Food', 'Transport', 'Activities', 'Shopping', 'Other')
+              - column:
+                  name: amount
+                  type: decimal(12, 2)
+                  constraints:
+                    nullable: false
+                    checkConstraint: amount > 0
+              - column:
+                  name: currency_code
+                  type: char(3)
+                  defaultValue: USD
+                  constraints:
+                    nullable: false
+              - column:
+                  name: paid_by_traveler_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expense_date
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: trip_expense_splits
+            columns:
+              - column:
+                  name: trip_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expense_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: traveler_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: trip_journal_entries
+            columns:
+              - column:
+                  name: id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: trip_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: body
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: entry_date
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            tableName: trip_travelers
+            columnNames: trip_id, id
+            constraintName: uq_trip_travelers_trip_id_id
+        - addUniqueConstraint:
+            tableName: trip_travelers
+            columnNames: trip_id, display_name
+            constraintName: uq_trip_travelers_trip_name
+        - addUniqueConstraint:
+            tableName: trip_travelers
+            columnNames: trip_id, sort_order
+            constraintName: uq_trip_travelers_trip_order
+        - addPrimaryKey:
+            tableName: trip_preferences
+            columnNames: trip_id, preference
+            constraintName: pk_trip_preferences
+        - addUniqueConstraint:
+            tableName: trip_preferences
+            columnNames: trip_id, sort_order
+            constraintName: uq_trip_preferences_trip_order
+        - addUniqueConstraint:
+            tableName: trip_expenses
+            columnNames: trip_id, id
+            constraintName: uq_trip_expenses_trip_id_id
+        - addPrimaryKey:
+            tableName: trip_expense_splits
+            columnNames: expense_id, traveler_id
+            constraintName: pk_trip_expense_splits
+
+        - addForeignKeyConstraint:
+            baseTableName: trip_travelers
+            baseColumnNames: trip_id
+            referencedTableName: trips
+            referencedColumnNames: id
+            constraintName: fk_trip_travelers_trip
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: trip_preferences
+            baseColumnNames: trip_id
+            referencedTableName: trips
+            referencedColumnNames: id
+            constraintName: fk_trip_preferences_trip
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: trip_expenses
+            baseColumnNames: trip_id
+            referencedTableName: trips
+            referencedColumnNames: id
+            constraintName: fk_trip_expenses_trip
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: trip_expenses
+            baseColumnNames: trip_id, paid_by_traveler_id
+            referencedTableName: trip_travelers
+            referencedColumnNames: trip_id, id
+            constraintName: fk_trip_expenses_payer
+        - addForeignKeyConstraint:
+            baseTableName: trip_expense_splits
+            baseColumnNames: trip_id, expense_id
+            referencedTableName: trip_expenses
+            referencedColumnNames: trip_id, id
+            constraintName: fk_trip_expense_splits_expense
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: trip_expense_splits
+            baseColumnNames: trip_id, traveler_id
+            referencedTableName: trip_travelers
+            referencedColumnNames: trip_id, id
+            constraintName: fk_trip_expense_splits_traveler
+        - addForeignKeyConstraint:
+            baseTableName: trip_journal_entries
+            baseColumnNames: trip_id
+            referencedTableName: trips
+            referencedColumnNames: id
+            constraintName: fk_trip_journal_entries_trip
+            onDelete: CASCADE
+
+        - createIndex:
+            tableName: trip_travelers
+            indexName: ix_trip_travelers_trip
+            columns:
+              - column:
+                  name: trip_id
+        - createIndex:
+            tableName: trip_preferences
+            indexName: ix_trip_preferences_trip
+            columns:
+              - column:
+                  name: trip_id
+        - createIndex:
+            tableName: trip_expenses
+            indexName: ix_trip_expenses_trip_date
+            columns:
+              - column:
+                  name: trip_id
+              - column:
+                  name: expense_date
+        - createIndex:
+            tableName: trip_expense_splits
+            indexName: ix_trip_expense_splits_traveler
+            columns:
+              - column:
+                  name: trip_id
+              - column:
+                  name: traveler_id
+        - createIndex:
+            tableName: trip_journal_entries
+            indexName: ix_trip_journal_entries_trip_date
+            columns:
+              - column:
+                  name: trip_id
+              - column:
+                  name: entry_date

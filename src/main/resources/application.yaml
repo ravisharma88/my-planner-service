@@ -1,3 +1,14 @@
 spring:
   application:
     name: my-planner-service
+  profiles:
+    default: local
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: ${OPENAI_MODEL:gpt-6-luna}
+          reasoning-effort: none
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
