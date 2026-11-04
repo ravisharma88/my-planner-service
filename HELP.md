@@ -30,3 +30,14 @@ While most of the inheritance is fine, it also inherits unwanted elements like `
 To prevent this, the project POM contains empty overrides for these elements.
 If you manually switch to a different parent and actually want the inheritance, you need to remove those overrides.
 
+
+## Trip API
+
+Run the service with `./mvnw spring-boot:run` from this project directory after configuring its PostgreSQL connection. The trip planner UI calls this service under `/api`. The development Vite server proxies these requests to `http://localhost:8081`; set `VITE_API_BASE_URL` when using a different API base URL.
+
+- `GET /api/trips` and `GET /api/trips/{tripId}` load trips, including travelers, preferences, expenses, and journal entries.
+- `POST /api/trips` saves trip destination, dates, travelers, preferences, and notes.
+- `POST /api/trips/{tripId}/expenses` saves an expense and its traveler splits.
+- `POST /api/trips/{tripId}/journal-entries` saves a journal entry.
+
+Trip and child records are persisted transactionally in the existing Liquibase schema.
